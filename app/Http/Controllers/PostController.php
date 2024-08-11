@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
@@ -52,8 +53,13 @@ class PostController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Post $post)
+    public function edit(Request $request, Post $post)
     {
+        if (Auth::id() !== $post->user_id) {
+            $request->session()->flash('error', '不正なアクセスです');
+            return redirect()->route('post.index');
+        }
+        
         return view('post.edit', compact('post'));
     }
 
@@ -80,6 +86,11 @@ class PostController extends Controller
      */
     public function destroy(Request $request, Post $post)
     {
+        if (Auth::id() !== $post->user_id) {
+            $request->session()->flash('message', '不正なアクセスです');
+            return redirect()->route('post.index');
+        }
+        
         $post->delete();
         $request->session()->flash('message', '削除しました');
         return redirect()->route('post.index');
